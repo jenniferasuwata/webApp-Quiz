@@ -46,13 +46,19 @@ pipeline {
         }
 
         stage('Deploy to EKS') {
-            steps {
-                script {
-                    withAWS(credentials: 'jenny_admin', region: "${AWS_REGION}") {
-                        sh """
-                            aws eks update-kubeconfig --region $AWS_REGION --name quiz-eks-cluster
-                            kubectl set image deployment/quiz-app-deployment quiz-app-container=\${ECR_REGISTRY}/\${ECR_REPOSITORY}:\${IMAGE_TAG} -n default
-                        """
+    steps {
+        script {
+            withAWS(credentials: 'jenny_admin', region: "${AWS_REGION}") {
+                sh """
+                    aws eks update-kubeconfig --region $AWS_REGION --name quiz-eks-cluster
+
+                    # First time apply (or if the Deployment doesn’t exist yet):
+                    kubectl apply -f k8s/k8s-deployment.yaml
+                    kubectl apply -f k8s/k8s-service.yaml
+
+                    # Then update the image if needed:
+                    kubectl set image deployment/quiz-app-deployment quiz-app-container=${ECR_REGISTRY}/quiz-app-repo:${IMAGE_TAG} -n default
+                """
                     }
                 }
             }
