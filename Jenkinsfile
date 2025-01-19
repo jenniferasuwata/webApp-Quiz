@@ -16,14 +16,16 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    sh """
-                        docker build -t \${ECR_REPOSITORY}:\${IMAGE_TAG} quiz-app/
-                    """
-                }
-            }
+    steps {
+        script {
+            sh """
+                # Use '.' (the current directory), not 'quiz-app/'
+                docker build -t \${ECR_REPOSITORY}:\${IMAGE_TAG} .
+            """
         }
+    }
+}
+
 
         stage('Login to ECR') {
             steps {
